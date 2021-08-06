@@ -17,6 +17,7 @@ public class TurretEnemy : MonoBehaviour
 
     void FireRegularly()
     {
+        turret.SetFireSpeedStep(Random.Range(1, 5));
         turret.FireCoin();
     }
 }

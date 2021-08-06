@@ -46,7 +46,6 @@ public class Turret : MonoBehaviour
     [SerializeField]
     LayerMask coinLayerMask;
 
-    [SerializeField]
     readonly List<Coin> coinList = new List<Coin>();
 
     readonly RaycastHit2D[] raycastResultList = new RaycastHit2D[4];
@@ -71,6 +70,12 @@ public class Turret : MonoBehaviour
 
     [SerializeField]
     ResultGroup resultGroup;
+    
+    [SerializeField]
+    GameObject helpText;
+
+    [SerializeField]
+    int fireCount;
 
     void Start()
     {
@@ -100,7 +105,7 @@ public class Turret : MonoBehaviour
             {
                 FireCoin();
 
-                otherTurret.FireCoin();
+                otherTurret.FireCoinEnemy();
             }
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -151,6 +156,12 @@ public class Turret : MonoBehaviour
         CheckAlignment();
     }
 
+    void FireCoinEnemy()
+    {
+        SetFireSpeedStep(Random.Range(1, 5));
+        FireCoin();
+    }
+
     void CheckAlignment()
     {
         if (aligned) return;
@@ -195,12 +206,14 @@ public class Turret : MonoBehaviour
 
                     if (interactive)
                     {
-                        resultGroup.ShowVictory();
+                        resultGroup.ShowVictory(fireCount);
                     }
                     else
                     {
                         resultGroup.ShowDefeat();
                     }
+                    
+                    helpText.gameObject.SetActive(false);
 
                     for (var k = 0; k < resultCount; k++)
                     {
@@ -290,10 +303,17 @@ public class Turret : MonoBehaviour
         coin.SetVelocity(fireRotationPivot.up * FireSpeed);
         coin.SetMaterial(coinMaterial);
         coinList.Add(coin);
+
+        fireCount++;
     }
 
     public void SetHorizontalInput(float v)
     {
         horizontalInput = v;
+    }
+
+    public void SetFireSpeedStep(int v)
+    {
+        fireSpeedStep = v;
     }
 }

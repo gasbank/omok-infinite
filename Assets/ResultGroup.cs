@@ -25,10 +25,11 @@ public class ResultGroup : MonoBehaviour
         canvasGroup.alpha = 0;
     }
 
-    public void ShowVictory()
+    public void ShowVictory(int fireCount)
     {
+        var score = 10000.0f / fireCount;
         image.color = victoryColor;
-        text.text = "Victory";
+        text.text = $"Victory\nScore: {score:F0}";
         canvasGroup.alpha = 1;
     }
 
