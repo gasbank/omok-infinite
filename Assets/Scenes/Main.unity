@@ -391,6 +391,7 @@ MonoBehaviour:
   otherTurret: {fileID: 264532815}
   resultGroup: {fileID: 945529875}
   helpText: {fileID: 1859067007}
+  fireCount: 0
 --- !u!1 &164518582
 GameObject:
   m_ObjectHideFlags: 0
@@ -586,6 +587,7 @@ MonoBehaviour:
   otherTurret: {fileID: 151986924}
   resultGroup: {fileID: 945529875}
   helpText: {fileID: 1859067007}
+  fireCount: 0
 --- !u!23 &264532816
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2932,9 +2934,12 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Aim: Left/Right
 
+    Power: Up/Down
+
     Fire: Space
 
-    Freeze Last: F'
+    Freeze Last:
+    F'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5117b9b2e43e1284cb99256bef67435c, type: 2}
   m_sharedMaterial: {fileID: -2499194704101116591, guid: 5117b9b2e43e1284cb99256bef67435c, type: 2}
