@@ -10,7 +10,12 @@ public class Coin : MonoBehaviour
 
     [SerializeField]
     float age;
-    
+
+    [SerializeField]
+    MeshRenderer meshRenderer;
+
+    public bool IsInside => isInside;
+
     public void SetVelocity(Vector2 v)
     {
         rb2D.velocity = v;
@@ -33,5 +38,16 @@ public class Coin : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public void SetMatched(Material matchMaterial)
+    {
+        meshRenderer.material = matchMaterial;
+    }
+
+    public void Stop()
+    {
+        rb2D.velocity = Vector2.zero;
+        rb2D.angularVelocity = 0;
     }
 }

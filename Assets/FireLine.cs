@@ -9,4 +9,13 @@ public class FireLine : MonoBehaviour
     {
         lineRenderer.SetPositions(positionList);
     }
+
+    public void SetPower(float time)
+    {
+        var copyGradient = lineRenderer.colorGradient;
+        var alphaKeysCopy = copyGradient.alphaKeys;
+        alphaKeysCopy[1].time = time;
+        copyGradient.alphaKeys = alphaKeysCopy;
+        lineRenderer.colorGradient = copyGradient;
+    }
 }
