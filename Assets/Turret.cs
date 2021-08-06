@@ -28,6 +28,8 @@ public class Turret : MonoBehaviour
     FireLine fireLine;
 
     readonly RaycastHit2D[] raycastResultList = new RaycastHit2D[4];
+
+    static bool Verbose => false;
     
     void Update()
     {
@@ -45,31 +47,25 @@ public class Turret : MonoBehaviour
         {
             FireCoin();
         }
-
+        
         var rayStartPos = fireRotationPivot.position;
         var rayDir = (Vector2)fireRotationPivot.up;
-
+        Transform exceptTransform = null;
+        
         var positionList = new List<Vector3> {rayStartPos};
-
-        if (CastRay(rayStartPos, rayDir, out var hit, 0, null))
+        
+        for (var i = 0; i < 5; i++)
         {
-            positionList.Add(hit.centroid);
-
-            var rayDir2 = Vector2.Reflect(rayDir, hit.normal);
-
-            if (CastRay(hit.centroid, rayDir2, out var hit2, 1, hit.transform))
+            if (CastRay(rayStartPos, rayDir, out var hit, i, exceptTransform))
             {
-                positionList.Add(hit2.centroid);
-                
-                var rayDir3 = Vector2.Reflect(rayDir2, hit2.normal);
+                positionList.Add(hit.centroid);
 
-                if (CastRay(hit2.centroid, rayDir3, out var hit3, 1, hit2.transform))
-                {
-                    positionList.Add(hit3.centroid);
-                }
+                rayStartPos = hit.centroid;
+                rayDir = Vector2.Reflect(rayDir, hit.normal);
+                exceptTransform = hit.transform;
             }
         }
-
+        
         fireLine.SetPositions(positionList.ToArray());
     }
 
@@ -99,8 +95,11 @@ public class Turret : MonoBehaviour
 
             if (result.collider != null && reverse == false && (exceptTransform == null || exceptTransform != result.transform))
             {
-                Debug.Log(
-                    $"[{c}] rayPos = {rayStartPos}, rayDir = {rayDir} : name = {resultName} / normal = {result.normal} / point = {result.point} / centroid = {result.centroid}");
+                if (Verbose)
+                {
+                    Debug.Log(
+                        $"[{c}] rayPos = {rayStartPos}, rayDir = {rayDir} : name = {resultName} / normal = {result.normal} / point = {result.point} / centroid = {result.centroid}");
+                }
 
                 hit = result;
                 return true;

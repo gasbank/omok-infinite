@@ -369,7 +369,7 @@ MonoBehaviour:
   fireRotationPivot: {fileID: 86600174}
   rotationSpeedDeg: 120
   coinPrefab: {fileID: 7900741569486379318, guid: 36cd501a80c57ea46a4fddfdb5469eb9, type: 3}
-  fireSpeed: 10
+  fireSpeed: 30
   lerpRatio: 0
   rotationExtent: 35
   raycastLayerMask:
@@ -850,9 +850,11 @@ LineRenderer:
   m_SortingOrder: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}
-  - {x: 1, y: 0, z: 0}
-  - {x: 1, y: 1, z: 0}
-  - {x: 2, y: 1, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.1
