@@ -64,28 +64,43 @@ public class Turret : MonoBehaviour
     [SerializeField]
     Material coinMaterial;
 
+    float horizontalInput;
+
+    [SerializeField]
+    Turret otherTurret;
+
+    [SerializeField]
+    ResultGroup resultGroup;
+
     void Start()
     {
         ClampAndUpdateFireSpeedStep();
     }
 
     void Update()
-    {    
+    {
         if (interactive)
         {
-            if (rotationExtent != 0)
-            {
-                lerpRatio += rotationSpeedDeg / (rotationExtent * 2) * Input.GetAxisRaw("Horizontal") * Time.deltaTime;
-                lerpRatio = Mathf.Clamp(lerpRatio, -1, 1);
-                fireRotationPivot.localRotation = Quaternion.Lerp(
-                    Quaternion.Euler(0, 0, rotationExtent),
-                    Quaternion.Euler(0, 0, -rotationExtent),
-                    (lerpRatio + 1) / 2);
-            }
+            horizontalInput = Input.GetAxisRaw("Horizontal");
+        }
 
+        if (rotationExtent != 0)
+        {
+            lerpRatio += rotationSpeedDeg / (rotationExtent * 2) * horizontalInput * Time.deltaTime;
+            lerpRatio = Mathf.Clamp(lerpRatio, -1, 1);
+            fireRotationPivot.localRotation = Quaternion.Lerp(
+                Quaternion.Euler(0, 0, rotationExtent),
+                Quaternion.Euler(0, 0, -rotationExtent),
+                (lerpRatio + 1) / 2);
+        }
+
+        if (interactive)
+        {
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 FireCoin();
+
+                otherTurret.FireCoin();
             }
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -111,27 +126,27 @@ public class Turret : MonoBehaviour
                     }
                 }
             }
-        }
+            
+            var rayStartPos = fireRotationPivot.position;
+            var rayDir = (Vector2) fireRotationPivot.up;
+            Transform exceptTransform = null;
 
-        var rayStartPos = fireRotationPivot.position;
-        var rayDir = (Vector2) fireRotationPivot.up;
-        Transform exceptTransform = null;
+            var positionList = new List<Vector3> {rayStartPos};
 
-        var positionList = new List<Vector3> {rayStartPos};
-
-        for (var i = 0; i < 5; i++)
-        {
-            if (CastRay(rayStartPos, rayDir, out var hit, i, exceptTransform))
+            for (var i = 0; i < 5; i++)
             {
-                positionList.Add(hit.centroid);
+                if (CastRay(rayStartPos, rayDir, out var hit, i, exceptTransform))
+                {
+                    positionList.Add(hit.centroid);
 
-                rayStartPos = hit.centroid;
-                rayDir = Vector2.Reflect(rayDir, hit.normal);
-                exceptTransform = hit.transform;
+                    rayStartPos = hit.centroid;
+                    rayDir = Vector2.Reflect(rayDir, hit.normal);
+                    exceptTransform = hit.transform;
+                }
             }
-        }
 
-        fireLine.SetPositions(positionList.ToArray());
+            fireLine.SetPositions(positionList.ToArray());
+        }
 
         CheckAlignment();
     }
@@ -175,15 +190,17 @@ public class Turret : MonoBehaviour
                 if (resultCount >= 5 && dist < resultCount - 0.5f && coinResultList.Take(resultCount)
                         .All(e => e.transform.GetComponent<Coin>().IsInside))
                 {
-                    foreach (var coin in coinList)
-                    {
-                        if (coin != null)
-                        {
-                            coin.Stop();
-                        }
-                    }
+                    StopAllCoin();
+                    otherTurret.StopAllCoin();
 
-                    aligned = true;
+                    if (interactive)
+                    {
+                        resultGroup.ShowVictory();
+                    }
+                    else
+                    {
+                        resultGroup.ShowDefeat();
+                    }
 
                     for (var k = 0; k < resultCount; k++)
                     {
@@ -197,12 +214,29 @@ public class Turret : MonoBehaviour
         }
     }
 
+    void StopAllCoin()
+    {
+        aligned = true;
+
+        foreach (var coin in coinList)
+        {
+            if (coin != null)
+            {
+                coin.Stop();
+            }
+        }
+    }
+
     void ClampAndUpdateFireSpeedStep()
     {
         fireSpeedStep = Mathf.Clamp(fireSpeedStep, 1, 6 + 1);
-        powerText.text = $"Power: {FireSpeed}";
 
-        fireLine.SetPower(fireSpeedStep / 6.0f);
+        if (interactive)
+        {
+            powerText.text = $"Power: {FireSpeed}";
+
+            fireLine.SetPower(fireSpeedStep / 6.0f);
+        }
     }
 
     bool CastRay(Vector2 rayStartPos, Vector2 rayDir, out RaycastHit2D hit, int c, Transform exceptTransform)
@@ -246,7 +280,7 @@ public class Turret : MonoBehaviour
         return false;
     }
 
-    void FireCoin()
+    public void FireCoin()
     {
         if (aligned) return;
 
@@ -256,5 +290,10 @@ public class Turret : MonoBehaviour
         coin.SetVelocity(fireRotationPivot.up * FireSpeed);
         coin.SetMaterial(coinMaterial);
         coinList.Add(coin);
+    }
+
+    public void SetHorizontalInput(float v)
+    {
+        horizontalInput = v;
     }
 }
