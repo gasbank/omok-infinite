@@ -138,6 +138,8 @@ MonoBehaviour:
   isInside: 0
   age: 0
   meshRenderer: {fileID: 7900741569486379316}
+  isFrozen: 0
+  alignment: {fileID: 9068088812626808111}
 --- !u!1 &9068088812626808111
 GameObject:
   m_ObjectHideFlags: 0

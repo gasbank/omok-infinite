@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -6,6 +5,9 @@ using UnityEngine;
 
 public class Turret : MonoBehaviour
 {
+    [SerializeField]
+    bool interactive;
+
     [SerializeField]
     Transform fireRotationPivot;
 
@@ -39,6 +41,9 @@ public class Turret : MonoBehaviour
     TextMeshProUGUI powerText;
 
     [SerializeField]
+    LayerMask coinAlignmentLayerMask;
+
+    [SerializeField]
     LayerMask coinLayerMask;
 
     [SerializeField]
@@ -56,39 +61,57 @@ public class Turret : MonoBehaviour
     [SerializeField]
     Material matchMaterial;
 
+    [SerializeField]
+    Material coinMaterial;
+
     void Start()
     {
         ClampAndUpdateFireSpeedStep();
     }
 
     void Update()
-    {
-        if (rotationExtent != 0)
+    {    
+        if (interactive)
         {
-            lerpRatio += rotationSpeedDeg / (rotationExtent * 2) * Input.GetAxis("Horizontal") * Time.deltaTime;
-            lerpRatio = Mathf.Clamp(lerpRatio, -1, 1);
-            fireRotationPivot.localRotation = Quaternion.Lerp(
-                Quaternion.Euler(0, 0, rotationExtent),
-                Quaternion.Euler(0, 0, -rotationExtent),
-                (lerpRatio + 1) / 2);
-        }
+            if (rotationExtent != 0)
+            {
+                lerpRatio += rotationSpeedDeg / (rotationExtent * 2) * Input.GetAxisRaw("Horizontal") * Time.deltaTime;
+                lerpRatio = Mathf.Clamp(lerpRatio, -1, 1);
+                fireRotationPivot.localRotation = Quaternion.Lerp(
+                    Quaternion.Euler(0, 0, rotationExtent),
+                    Quaternion.Euler(0, 0, -rotationExtent),
+                    (lerpRatio + 1) / 2);
+            }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            FireCoin();
-        }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                FireCoin();
+            }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            fireSpeedStep++;
-        }
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                fireSpeedStep++;
+            }
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            fireSpeedStep--;
-        }
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                fireSpeedStep--;
+            }
 
-        ClampAndUpdateFireSpeedStep();
+            ClampAndUpdateFireSpeedStep();
+
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                if (coinList.Count > 0)
+                {
+                    var lastCoin = coinList.Last();
+                    if (lastCoin != null)
+                    {
+                        lastCoin.TrySetFrozen();
+                    }
+                }
+            }
+        }
 
         var rayStartPos = fireRotationPivot.position;
         var rayDir = (Vector2) fireRotationPivot.up;
@@ -109,7 +132,7 @@ public class Turret : MonoBehaviour
         }
 
         fireLine.SetPositions(positionList.ToArray());
-        
+
         CheckAlignment();
     }
 
@@ -129,9 +152,9 @@ public class Turret : MonoBehaviour
 
                 var direction = cbPos - caPos;
                 var dist = direction.magnitude;
-                
+
                 var resultCount = Physics2D.RaycastNonAlloc(caPos, direction, coinResultList,
-                    dist, coinLayerMask);
+                    dist, coinAlignmentLayerMask);
 
                 if (Verbose)
                 {
@@ -149,7 +172,8 @@ public class Turret : MonoBehaviour
                     }
                 }
 
-                if (resultCount >= 5 && dist < resultCount && coinResultList.Take(resultCount).All(e => e.transform.GetComponent<Coin>().IsInside))
+                if (resultCount >= 5 && dist < resultCount - 0.5f && coinResultList.Take(resultCount)
+                        .All(e => e.transform.GetComponent<Coin>().IsInside))
                 {
                     foreach (var coin in coinList)
                     {
@@ -158,13 +182,13 @@ public class Turret : MonoBehaviour
                             coin.Stop();
                         }
                     }
-                    
+
                     aligned = true;
 
                     for (var k = 0; k < resultCount; k++)
                     {
                         var result = coinResultList[k];
-                        result.transform.GetComponent<Coin>().SetMatched(matchMaterial);
+                        result.transform.GetComponent<Coin>().SetMaterial(matchMaterial);
                     }
 
                     return;
@@ -225,10 +249,12 @@ public class Turret : MonoBehaviour
     void FireCoin()
     {
         if (aligned) return;
-            
+
         var coin = Instantiate(coinPrefab).GetComponent<Coin>();
+        coin.SetLayer(coinLayerMask, coinAlignmentLayerMask);
         coin.transform.position = fireRotationPivot.position;
         coin.SetVelocity(fireRotationPivot.up * FireSpeed);
+        coin.SetMaterial(coinMaterial);
         coinList.Add(coin);
     }
 }
